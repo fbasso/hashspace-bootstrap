@@ -1,0 +1,9 @@
+var dropdown = require('../../dropdown/dropdown.hsp').dropdown;
+
+{export template demo()}
+    <#dropdown>
+    </#dropdown>
+
+    <form role="form">
+    </form>
+{/template}

@@ -1,11 +1,19 @@
 var asyncRequire = require("noder-js/asyncRequire");
 
 //The list of demos to be loaded is defined here
+/*
 var demos = [
-    {id: 'carousel', prettyName: 'Carousel'}
+    {id: 'carousel', prettyName: 'Carousel'},
+    {id: 'dropdown', prettyName: 'Dropdown'}
+];
+*/
+
+var demos = [
+     {id: 'dropdown', prettyName: 'Dropdown'}
 ];
 
 exports.getDemo = function() {
+    debugger;
     var demosTpl = [];
     for (var i = 0; i < demos.length; i++) {
         demosTpl.push({
