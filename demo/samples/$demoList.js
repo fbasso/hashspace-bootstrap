@@ -13,7 +13,6 @@ var demos = [
 ];
 
 exports.getDemo = function() {
-    debugger;
     var demosTpl = [];
     for (var i = 0; i < demos.length; i++) {
         demosTpl.push({

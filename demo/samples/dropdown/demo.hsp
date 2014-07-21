@@ -2,6 +2,19 @@ var dropdown = require('../../dropdown/dropdown.hsp').dropdown;
 
 {export template demo()}
     <#dropdown>
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                Dropdown
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
+            </ul>
+        </div>
     </#dropdown>
 
     <form role="form">
