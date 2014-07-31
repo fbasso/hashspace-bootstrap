@@ -82,6 +82,12 @@ var TabController = new klass({
 
     toggleFading : function(isEnable) {
         this._fade = isEnable;
+    },
+
+    onDisabledChange : function(isDisabled) {
+        if (isDisabled) {
+            this._isActive = false;
+        }
     }
 });
 
@@ -179,6 +185,10 @@ exports.TabbarController = new klass({
         }
         if (newIndex >= nbTabs) {
             newIndex = nbTabs - 1;
+        }
+
+        if (this.content[newIndex].disabled) {
+            newIndex = oldIndex;
         }
 
         if (this.index != newIndex) {
