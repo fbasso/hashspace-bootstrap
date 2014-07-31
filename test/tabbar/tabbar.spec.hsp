@@ -6,7 +6,7 @@ var fireEvent=require("hsp/utils/eventgenerator").fireEvent;
 var touchEventMap = require("hsp/gestures/touchEvent").touchEventMap;
 
 {template test(model)}
-    <#tabbar index="{model.index}" noTransition="{model.noTransition}">
+    <#tabbar index="{model.index}" noTransition="{model.noTransition}" display="{model.display}" justified="{model.justified}" onshow="{model.onshow()}" onshown="{model.onshown()}">
         <@tab>
             <@label>Panel 1 content</@label>
             <@content>
@@ -16,6 +16,9 @@ var touchEventMap = require("hsp/gestures/touchEvent").touchEventMap;
         <@tab label="Panel 2">
             <span id="panel_2">Panel 2 content</span>
         </@tab>
+        <@tab label="Panel 3" disabled="true">
+        <span id="panel_3">Panel 3 content</span>
+    </@tab>
     </#tabbar>
 {/template}
 
@@ -24,6 +27,18 @@ describe('Tabbar', function() {
     var template;
     var clock;
     var model;
+
+    function setModel(json) {
+        model = {
+            index: json.index,
+            noTransition: json.noTransition != null ? json.noTransition : true,
+            display: json.display || "tabs",
+            justified: json.justified != null ? json.justified : false,
+            onshow: json.onshow || function(){},
+            onshown: json.onshown || function(){}
+        };
+    }
+
     before(function(){
         container = doc.createElement("div");
         //clock = sinon.useFakeTimers();
@@ -35,6 +50,7 @@ describe('Tabbar', function() {
     });
 
     function instantiateTemplate() {
+        disposeTemplate();
         template = test(model);
         template.render(container);
     };
@@ -46,9 +62,16 @@ describe('Tabbar', function() {
         template = null;
     };
 
+    function getContainer() {
+        return container.querySelectorAll('ul')[0];
+    }
     function getTabs() {
-        var ul = container.querySelectorAll('ul')[0];
+        var ul = getContainer();
         return ul.querySelectorAll('li');
+    }
+    function getTabLinks() {
+        var ul = getContainer();
+        return ul.querySelectorAll('a');
     }
 
     function testTabs(activeIndex) {
@@ -69,26 +92,52 @@ describe('Tabbar', function() {
         expect(nbActiveTabs).to.be(1);
     }
 
+    it('should have the right classes', function() {
+        setModel({});
+        instantiateTemplate();
+        var ul = getContainer()
+        expect(ul.getAttribute("class")).to.contain("nav-tabs");
+
+        setModel({display: "pills"});
+        instantiateTemplate();
+        var ul = getContainer()
+        expect(ul.getAttribute("class")).not.to.contain("nav-tabs");
+        expect(ul.getAttribute("class")).to.contain("nav-pills");
+
+        setModel({display: "vertical"});
+        instantiateTemplate();
+        var ul = getContainer()
+        expect(ul.getAttribute("class")).not.to.contain("nav-tabs");
+        expect(ul.getAttribute("class")).to.contain("nav-pills");
+        expect(ul.getAttribute("class")).to.contain("nav-stacked");
+
+    });
+
     it('should be well initialized', function() {
-        model = {
+        setModel({
             index: 0,
             noTransition: true
-        };
+        });
         instantiateTemplate();
         //console.log(model);
         testTabs(0);
     });
 
-    it('tests the model change', function() {
+    it('should change the binded index', function() {
         $set(model, "index", 1);
         hsp.refresh();
         testTabs(1);
 
-        // Test the range : over the limits, the tab should stick to the limit
+        // Test the disabled tab
         $set(model, "index", 2);
         hsp.refresh();
         testTabs(1);
-        expect(model.index).to.be(1);
+
+        // Test the range : over the limits, the tab should stick to the limit
+        $set(model, "index", 3);
+        hsp.refresh();
+        testTabs(1);
+        expect(model.index).to.be(1); // as the 2 is disabled, fallback on the last selected
 
         $set(model, "index", -1);
         hsp.refresh();
@@ -96,4 +145,60 @@ describe('Tabbar', function() {
         expect(model.index).to.be(0);
 
     });
+
+    it('should call the callbacks', function() {
+        var onshowCount = 0;
+        var onshownCount = 0;
+        setModel({
+            index: 0,
+            noTransition: true,
+            onshow: function(){onshowCount++},
+            onshown: function(){onshownCount++}
+        });
+        //debugger;
+        instantiateTemplate();
+
+        var as = getTabLinks();
+        expect(onshowCount).to.be(0);
+        expect(onshownCount).to.be(0);
+
+        fireEvent("click", as[1]);
+        hsp.refresh();
+        expect(onshowCount).to.be(1);
+        expect(onshownCount).to.be(1);
+
+        // diabled tab
+        fireEvent("click", as[2]);
+        hsp.refresh();
+        expect(onshowCount).to.be(1);
+        expect(onshownCount).to.be(1);
+
+    });
+    /*
+    it('should transition', function(done) {
+        clock.restore();
+        container = window.document.body;
+        var cssCode = ".carousel-inner > .item{position:relative;display:none;-webkit-transition:10ms ease-in-out left;transition:10ms ease-in-out left;}.carousel-inner > .active,.carousel-inner > .next,.carousel-inner > .prev{display:block;}.carousel-inner > .next,.carousel-inner > .prev{position:absolute;top:0;width:100%;}.carousel-inner > .active,.carousel-inner > .next.left,.carousel-inner > .prev.right{left:0;}.carousel-inner > .next,.carousel-inner > .active.right{left:100%;}.carousel-inner > .prev,.carousel-inner > .active.left{left:-100%;}";
+        var styleElement = document.createElement("style");
+        styleElement.type = "text/css";
+        if (styleElement.styleSheet) {
+            styleElement.styleSheet.cssText = cssCode;
+        } else {
+            styleElement.appendChild(document.createTextNode(cssCode));
+        }
+        document.getElementsByTagName("head")[0].appendChild(styleElement);
+
+        instantiateTemplate({noTransition: false});
+        var rightArrow = getRightArrow()[0];
+        testSlideActive(0);
+        fireEvent("click", rightArrow);
+        hsp.refresh();
+        fireEvent("click", rightArrow);
+        hsp.refresh();
+        setTimeout(function() {
+            testSlideActive(2);
+            done();
+        }, 300);
+    });
+    */
 });
